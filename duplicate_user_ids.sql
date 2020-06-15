@@ -1,0 +1,1 @@
+SElECT COUNT(user_id) saw_0, primary_id saw_1 FROM (SELECT "User Details"."User Id" user_id, "User Details"."Primary Identifier" primary_id FROM "Users") users GROUP BY primary_id HAVING COUNT(user_id) > 1
