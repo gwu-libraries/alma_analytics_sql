@@ -1,6 +1,7 @@
 SELECT 
-    COUNT(DISTINCT loans.borrower_id) unique_borrowers,
-    ttbooks.title_author
+    ttbooks.course_code,
+    ttbooks.course_name,
+    COUNT(loans.loan_id) number_of_loans
 FROM
 (SELECT
    "Fulfillment"."Bibliographic Details"."MMS Id" mms_id,
@@ -14,13 +15,8 @@ FROM
 FROM "Fulfillment"
 WHERE
     ("Loan Date"."Loan Date" >= date '2023-08-24') AND ("Loan Date"."Loan Date" <= date '2023-12-19') AND ("Item Location at time of loan"."Location Name" IN ('Eckles Reserves', 'Requestable Reserves', 'Reserves (2 hours + overnight)', 'Reserves (2 hours + overnight) dup', 'Reserves (2 hours + overnight) ret', 'Reserves (2 hours)', 'Reserves (2 hours) dup', 'Reserves (2 hours) ret', 'Reserves (3 hours)', 'Reserves 2 hours', 'Reserves 2 hours, overnight')) AND ("Loan Details"."In House Loan Indicator" = 'N')
-) loans
-INNER JOIN 
-(SELECT 
-    "Bibliographic Details"."Title" title, 
-    "Bibliographic Details"."Title Author Combined and Normalized" title_author, 
-    "Bibliographic Details"."MMS Id" mms_id 
-FROM "Course Reserves" WHERE "Reading List"."Reading List Code" IN ('Top Textbooks - Fall 2023')
-) ttbooks 
-ON loans.mms_id=ttbooks.mms_id
-GROUP BY ttbooks.title_author
+) loans 
+INNER JOIN
+(SELECT CASE WHEN creserves2.course_code IS NULL THEN 'TT-OTHER' ELSE creserves2.course_code END course_code, CASE WHEN creserves2.course_name IS NULL THEN 'Top Textbooks - Other' ELSE creserves2.course_name END course_name, creserves.mms_id mms_id FROM (SELECT "Bibliographic Details"."MMS Id" mms_id FROM "Course Reserves" WHERE ("Reading List"."Reading List Code" IN ('Top Textbooks - Fall 2023')) ) creserves LEFT JOIN (SELECT "Course"."Course Code" course_code, "Course"."Course Name" course_name, "Bibliographic Details"."MMS Id" mms_id FROM "Course Reserves" WHERE ("Reading List"."Reading List Name" NOT LIKE 'Top Textbooks%') AND ( "Course"."Course Code" LIKE '%Fall 2023') ) creserves2 ON creserves.mms_id = creserves2.mms_id) ttbooks
+ON ttbooks.mms_id = loans.mms_id 
+GROUP BY ttbooks.course_code, ttbooks.course_name

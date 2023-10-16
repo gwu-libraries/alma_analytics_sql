@@ -53,4 +53,4 @@ INNER JOIN
 FROM "Funds Expenditure" 
 WHERE "Fiscal Period"."Fiscal Period Filter" = 'Current Fiscal Year') total_exp_by_pol
 ON current_invoices.pol_ref = total_exp_by_pol.pol_ref
-WHERE (current_funds.bal_avail < 0) OR (current_invoices.pol_fund_expenditure > current_invoices.pol_price) OR (current_invoices.pol_status != 'ACTIVE') OR ((total_exp_by_pol.pol_total_expenditure - previous_payments.previous_exp) / previous_payments.previous_exp > .03) OR (current_invoices.pol_ref='-1')
+WHERE (current_funds.bal_avail < 0) OR (ROUND(current_invoices.pol_fund_expenditure, 0) != ROUND(current_invoices.pol_price, 0)) OR (current_invoices.pol_status != 'ACTIVE') OR ((previous_payments.previous_exp != 0) AND (ABS(total_exp_by_pol.pol_total_expenditure - previous_payments.previous_exp) / previous_payments.previous_exp > .03)) OR (current_invoices.pol_ref='-1')
